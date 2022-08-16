@@ -1,0 +1,7 @@
+venv
+data
+__pycache__
+*.jpg
+*.mp4
+*.env
+*.github

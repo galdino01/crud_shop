@@ -1,0 +1,95 @@
+version: '3'
+
+services:
+  products:
+    build:
+      context: ./src/products
+      dockerfile: Dockerfile
+    restart: unless-stopped
+
+    ports:
+      - "${PRODUCTS_PORT}:8000"
+    environment:
+      MONGO_SERVER: ${MONGO_URL}
+      PRODUCTS_PORT: ${PRODUCTS_PORT}
+    networks:
+      - lojinha_net
+
+  customers:
+    build:
+      context: ./src/customers
+      dockerfile: Dockerfile
+    restart: unless-stopped
+
+    ports:
+      - "${CUSTOMERS_PORT}:8000"
+    environment:
+      MONGO_SERVER: ${MONGO_URL}
+      CUSTOMERS_PORT: ${CUSTOMERS_PORT}
+    networks:
+      - lojinha_net
+
+  sales:
+    build:
+      context: ./src/sales
+      dockerfile: Dockerfile
+    restart: unless-stopped
+
+    ports:
+      - "${SALES_PORT}:8000"
+    environment:
+      MONGO_SERVER: ${MONGO_URL}
+      SALES_PORT: ${SALES_PORT}
+    networks:
+      - lojinha_net
+
+  frontend:
+    build:
+      context: ./src/frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - ./src/frontend:/app
+    ports:
+      - "${FRONTEND_PORT}:5000"
+    environment:
+      PRODUCTS_URL: ${PRODUCTS_URL}
+      CUSTOMERS_URL: ${CUSTOMERS_URL}
+      SALES_URL: ${SALES_URL}
+      FLASK_ENV: development
+    networks:
+      - lojinha_net
+
+  mongo:
+    image: mongo
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_INITDB_DATABASE: lojinha
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodata:/data/db
+    networks:
+      - lojinha_net
+
+  mongo-express:
+    image: mongo-express
+    ports:
+      - 8081:8081
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      ME_CONFIG_MONGODB_ADMINPASSWORD: senha
+      ME_CONFIG_MONGODB_URL: ${MONGO_URL}
+    networks:
+      - lojinha_net
+    restart: unless-stopped
+    depends_on:
+      - mongo
+
+volumes:
+  mongodata:
+
+networks:
+  lojinha_net:
+    driver: bridge
